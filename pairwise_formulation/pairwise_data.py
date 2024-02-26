@@ -76,19 +76,22 @@ class PairwiseDataInfo():
         )
 
     def remove_a_row_from_df_if_the_first_item_is_nan(self, df):
-        y_col_filtered = df[self.target_value_column_name].dropna(axis=0, how='any')
+        y_col_filtered = df[self.target_value_col_name].dropna(axis=0, how='any')
         df_filtered = df.loc[y_col_filtered.index]
         return df_filtered
 
     def impute_missing_values_using_simple_imputer(self, df):
-        df = df.set_index("index")
+        try:
+            df = df.set_index("index")
+        except KeyError:
+            logging.warning("Dataframe has no index")
         df.replace([np.inf, -np.inf], np.nan, inplace=True)
         imputer = SimpleImputer(strategy='mean')
         imputer.fit(df)
         # imputer.set_output(transform="pandas")
         df_ary = imputer.transform(df)
         df_imputed = pd.DataFrame(df_ary, columns=df.columns, index=df.index)
-        assert (df_imputed[self.target_value_column_name] - df[self.target_value_column_name]).sum() == 0.0
+        assert (df_imputed[self.target_value_col_name] - df[self.target_value_col_name]).sum() == 0.0
 
         return df_imputed
 

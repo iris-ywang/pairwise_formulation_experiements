@@ -3,7 +3,7 @@ from itertools import chain
 
 from .pairwise_data import PairwiseDataInfo, PairwiseValues
 from .pa_basics.all_pairs import pair_by_pair_id_per_feature
-
+from .pa_basics.rating import rating_trueskill, rating_sbbr
 
 class PairwiseModel():
 
@@ -58,7 +58,7 @@ class PairwiseModel():
         self.Y_values.Y_pa_c1_sign = list(train_pairs_for_sign[:, 0])
         return self
 
-    def predict(self):
+    def predict(self, ranking_method=rating_trueskill, ranking_input_type='c2', if_sbbr_dist=False):
         self.Y_values.Y_pa_c2_sign_true, self.Y_values.Y_pa_c2_sign = \
             self._fit_sign(self.pairwise_data_info.c2_test_pair_ids)
 
@@ -71,7 +71,14 @@ class PairwiseModel():
 
             self.Y_values.Y_pa_c3_nume_true, self.Y_values.Y_pa_c3_nume = \
                 self._fit_dist(self.pairwise_data_info.c3_test_pair_ids)
-        return
+
+        y_ranking_score_test = self.rank(
+            ranking_method=ranking_method,
+            ranking_input_type=ranking_input_type,
+            if_sbbr_dist=if_sbbr_dist
+        )
+
+        return y_ranking_score_test
 
     def rank(self, ranking_method, ranking_input_type, if_sbbr_dist=False):
         """ranking_inputs: sub-list of ['c2', 'c3', 'c2_c3', 'c1_c2_c3']"""

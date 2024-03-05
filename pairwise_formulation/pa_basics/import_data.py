@@ -5,6 +5,8 @@ import ChEMBL dataset and convert it to filtered np.array
 import pandas as pd
 import numpy as np
 from sklearn.utils import shuffle
+from sklearn.model_selection import KFold
+
 
 
 def dataset(filename, shuffle_state=None):
@@ -68,3 +70,14 @@ def duplicated_features(data):
     new_train = a[ui].T
     new_train_test = np.concatenate((y, new_train), axis=1)
     return new_train_test
+
+
+def kfold_splits(train_test: np.array, fold=10, random_state=None) -> dict:
+    train_test_data = {}
+    kf = KFold(n_splits=fold, random_state=random_state)
+    n_fold = 0
+    for train_ids, test_ids in kf.split(train_test):
+        train_test_data_per_fold = {'train_set': train_test[train_ids], 'test_set': train_test[test_ids]}
+        train_test_data[n_fold] = train_test_data_per_fold
+        n_fold += 1
+    return train_test_data

@@ -82,32 +82,18 @@ class PairwiseModel():
 
     def rank(self, ranking_method, ranking_input_type, if_sbbr_dist=False):
         """ranking_inputs: sub-list of ['c2', 'c3', 'c2_c3', 'c1_c2_c3']"""
-        if ranking_input_type == "c2" or ranking_input_type == "c3":
+        combi_types = ranking_input_type.split("_")
+        Y, test_pair_ids = [], []
+        for pair_type in combi_types:
+
             if not if_sbbr_dist:
-                Y = list(getattr(self.Y_values, f"Y_pa_{ranking_input_type}_sign"))
+                Y += list(getattr(self.Y_values, f"Y_pa_{pair_type}_sign"))
             else:
                 assert self.trained_reg_model is not None
-
-                Y = list(
-                    getattr(self.Y_values, f"Y_pa_{ranking_input_type}_sign") * \
-                    getattr(self.Y_values, f"Y_pa_{ranking_input_type}_dist")
+                Y += list(
+                    getattr(self.Y_values, f"Y_pa_{pair_type}_nume")
                 )
-            test_pair_ids = getattr(self.pairwise_data_info, f"{ranking_input_type}_test_pair_ids")
-
-        elif "_" in ranking_input_type:
-            combi_types = ranking_input_type.split("_")
-            Y, test_pair_ids = [], []
-            for pair_type in combi_types:
-
-                if not if_sbbr_dist:
-                    Y += list(getattr(self.Y_values, f"Y_pa_{pair_type}_sign"))
-                else:
-                    assert self.trained_reg_model is not None
-                    Y += list(
-                        getattr(self.Y_values, f"Y_pa_{ranking_input_type}_sign") * \
-                        getattr(self.Y_values, f"Y_pa_{ranking_input_type}_dist")
-                    )
-                test_pair_ids += getattr(self.pairwise_data_info, f"{pair_type}_test_pair_ids")
+            test_pair_ids += getattr(self.pairwise_data_info, f"{pair_type}_test_pair_ids")
 
         y_ranking_score_all = ranking_method(
             Y=Y,
@@ -115,7 +101,7 @@ class PairwiseModel():
             y_true=self.pairwise_data_info.y_true_all)
         y_ranking_score_test = y_ranking_score_all[self.pairwise_data_info.test_ids]
 
-        setattr(self.Y_values, f"y_rank_via_{ranking_input_type}", y_ranking_score_test)
+        setattr(self, f"y_rank_via_{ranking_input_type}", y_ranking_score_test)
         return y_ranking_score_test
 
     def _fit_sign(self, test_pair_ids):

@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     input_dir = "../data/material_discovery_data/"
-    output_dir = "../output/boolean_chembl/"
+    output_dir = "../output/material_discovery_data/"
     list_filename = [
         "icsd_formation_energy.csv",
         "mp_band_gap.csv",

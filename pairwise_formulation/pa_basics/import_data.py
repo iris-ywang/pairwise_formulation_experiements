@@ -1,12 +1,13 @@
 """
 import ChEMBL dataset and convert it to filtered np.array
 """
-
+import logging
 import pandas as pd
 import numpy as np
+
 from sklearn.utils import shuffle
 from sklearn.model_selection import KFold
-
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, minmax_scale
 
 
 def dataset(filename, shuffle_state=None):
@@ -14,6 +15,17 @@ def dataset(filename, shuffle_state=None):
     filter1 = uniform_features(orig_data)
     filter2 = duplicated_features(filter1)
     return filter2
+
+
+def filter_data(train_test, shuffle_state=None):
+    if shuffle_state is not None:
+        train_test = shuffle(train_test, random_state=shuffle_state)
+
+    filter1 = uniform_features(train_test)
+    filter2 = duplicated_features(filter1)
+    filter3 = transform_ordinal_to_boolean(filter2)
+    filter3[:, 1:] = minmax_scale(filter3[:, 1:])
+    return filter3
 
 
 def import_data(filename, shuffle_state):
@@ -81,3 +93,34 @@ def kfold_splits(train_test: np.array, fold=10) -> dict:
         train_test_data[n_fold] = train_test_data_per_fold
         n_fold += 1
     return train_test_data
+
+
+def transform_categorical_columns(train_test, col_not_value):
+    print("Transforming categorical features...")
+    label_encoder = LabelEncoder()
+    for col_name in col_not_value:
+        train_test[col_name] = label_encoder.fit_transform(train_test[col_name])
+    return train_test
+
+
+def transform_ordinal_to_boolean(data: np.array):
+    n_samples, n_columns = data.shape
+    n_ordinal_limit = 10
+
+    list_of_features_to_transform = []
+    for feature in range(1, n_columns):
+        n_unique = len(np.unique(data[:, feature]))
+
+        if n_unique <= n_ordinal_limit:
+            list_of_features_to_transform.append(feature)
+    if not list_of_features_to_transform:
+        return data
+
+    X_to_transform = data[:, list_of_features_to_transform]
+    onehot_encoder = OneHotEncoder(drop="first")
+    X_transformed = onehot_encoder.fit_transform(X_to_transform).toarray()
+
+    data_transformed = np.delete(data, list_of_features_to_transform, 1)
+    data_transformed = np.concatenate([data_transformed, X_transformed], axis=1)
+    logging.info(f"Dataset is of size {n_samples}. After transformation, number of features changed from {n_columns-1} to {data_transformed.shape[1]-1}.")
+    return data_transformed

@@ -72,9 +72,9 @@ def duplicated_features(data):
     return new_train_test
 
 
-def kfold_splits(train_test: np.array, fold=10, random_state=None) -> dict:
+def kfold_splits(train_test: np.array, fold=10) -> dict:
     train_test_data = {}
-    kf = KFold(n_splits=fold, shuffle=True, random_state=random_state)
+    kf = KFold(n_splits=fold)
     n_fold = 0
     for train_ids, test_ids in kf.split(train_test):
         train_test_data_per_fold = {'train_set': train_test[train_ids], 'test_set': train_test[test_ids]}

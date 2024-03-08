@@ -6,7 +6,7 @@ import os
 import warnings
 
 from pairwise_formulation.pa_basics.import_data import dataset, kfold_splits
-from run_utils import run
+from utils import run
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 warnings.filterwarnings("ignore")

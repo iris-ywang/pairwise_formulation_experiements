@@ -20,7 +20,7 @@ class PairwiseDataInfo():
         self.y_true_all = None
         self.train_ids = None
         self.test_ids = None
-        self.train_pair_ids = None
+        self.c1_test_pair_ids = None  # not acutally test pairs but for the ease of naming nad using
         self.c2_test_pair_ids = None
         self.c3_test_pair_ids = None
 
@@ -59,7 +59,7 @@ class PairwiseDataInfo():
         self.y_true_all = self.train_test[:, 0]
         self.train_ids = list(range(len(self.train_ary)))
         self.test_ids = list(range(len(self.train_ids), len(self.train_ids) + len(self.test_ary)))
-        self.train_pair_ids = list(permutations(self.train_ids, 2)) + [(a, a) for a in self.train_ids]
+        self.c1_test_pair_ids = list(permutations(self.train_ids, 2)) + [(a, a) for a in self.train_ids]
         self.c2_test_pair_ids = self.pair_test_with_train_ids_for_c2_pairs(self.train_ids, self.test_ids)
         self.c3_test_pair_ids = list(permutations(self.test_ids, 2)) + [(a, a) for a in self.test_ids]
 
@@ -86,6 +86,7 @@ class PairwiseDataInfo():
         except KeyError:
             logging.warning("Dataframe has no index")
         df.replace([np.inf, -np.inf], np.nan, inplace=True)
+        df.columns = df.columns.astype(str)
         imputer = SimpleImputer(strategy='mean')
         imputer.fit(df)
         # imputer.set_output(transform="pandas")

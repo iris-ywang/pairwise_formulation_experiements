@@ -30,7 +30,7 @@ class PairwiseModel():
     def fit(self):
         train_pairs = self.pairing_method(
             data=self.pairwise_data_info.train_test,
-            pair_ids=self.pairwise_data_info.train_pair_ids
+            pair_ids=self.pairwise_data_info.c1_test_pair_ids
         )
         self.Y_values.Y_pa_c1_true = list(train_pairs[:, 0])
 
@@ -59,18 +59,22 @@ class PairwiseModel():
         return self
 
     def predict(self, ranking_method=rating_trueskill, ranking_input_type='c2', if_sbbr_dist=False):
-        self.Y_values.Y_pa_c2_sign_true, self.Y_values.Y_pa_c2_sign = \
-            self._fit_sign(self.pairwise_data_info.c2_test_pair_ids)
+        if self.Y_values.Y_pa_c2_sign is None:
+            self.Y_values.Y_pa_c2_sign_true, self.Y_values.Y_pa_c2_sign = \
+                self._fit_sign(self.pairwise_data_info.c2_test_pair_ids)
 
-        self.Y_values.Y_pa_c3_sign_true, self.Y_values.Y_pa_c3_sign = \
-            self._fit_sign(self.pairwise_data_info.c3_test_pair_ids)
+        if self.Y_values.Y_pa_c3_sign is None:
+            self.Y_values.Y_pa_c3_sign_true, self.Y_values.Y_pa_c3_sign = \
+                self._fit_sign(self.pairwise_data_info.c3_test_pair_ids)
 
         if self.trained_reg_model is not None:
-            self.Y_values.Y_pa_c2_nume_true, self.Y_values.Y_pa_c2_nume = \
-                self._fit_dist(self.pairwise_data_info.c2_test_pair_ids)
+            if self.Y_values.Y_pa_c2_nume is None:
+                self.Y_values.Y_pa_c2_nume_true, self.Y_values.Y_pa_c2_nume = \
+                    self._fit_dist(self.pairwise_data_info.c2_test_pair_ids)
 
-            self.Y_values.Y_pa_c3_nume_true, self.Y_values.Y_pa_c3_nume = \
-                self._fit_dist(self.pairwise_data_info.c3_test_pair_ids)
+            if self.Y_values.Y_pa_c3_nume is None:
+                self.Y_values.Y_pa_c3_nume_true, self.Y_values.Y_pa_c3_nume = \
+                    self._fit_dist(self.pairwise_data_info.c3_test_pair_ids)
 
         y_ranking_score_test = self.rank(
             ranking_method=ranking_method,

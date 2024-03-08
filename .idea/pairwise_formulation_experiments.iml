@@ -11,4 +11,12 @@
     <option name="format" value="PLAIN" />
     <option name="myDocStringFormat" value="Plain" />
   </component>
+  <component name="PyNamespacePackagesService">
+    <option name="namespacePackageFolders">
+      <list>
+        <option value="$MODULE_DIR$/pairwise_formulation" />
+        <option value="$MODULE_DIR$/ScoreBasedTrueSkill" />
+      </list>
+    </option>
+  </component>
 </module>

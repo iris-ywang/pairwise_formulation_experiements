@@ -28,6 +28,13 @@ def filter_data(train_test, shuffle_state=None):
     return filter3
 
 
+def get_repetition_rate(train_test):
+    sample_size = np.shape(train_test)[0]
+    my_dict = {i: list(train_test[:, 0]).count(i) for i in list(train_test[:, 0])}
+    max_repetition = max(my_dict.values())
+    return max_repetition / sample_size
+
+
 def import_data(filename, shuffle_state):
     """
     to import raw data from csv to numpy array

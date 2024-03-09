@@ -123,55 +123,67 @@ def results_of_pairwise_combinations(
     return [metrics_c2, metrics_c2_c3, metrics_c1_c2_c3], metrics_est
 
 
-def run(train_test_splits_dict: dict, ML_cls, ML_reg, percentage_of_top_samples=0.1):
+def run_per_dataset(foldwise_data: dict, ML_cls, ML_reg, percentage_of_top_samples=0.1):
+    train_set = foldwise_data['train_set']
+    test_set = foldwise_data['test_set']
 
+    # pairwise approach
+    pairwise_data = PairwiseDataInfo(train_set, test_set)
+    pairwise_model = PairwiseModel(
+        pairwise_data_info=pairwise_data,
+        ML_cls=ML_cls,
+        ML_reg=ML_reg,
+    ).fit()
+
+    metrics_pa_v1, metrics_est_pa_v1 = results_of_pairwise_combinations(
+        pairwise_model=pairwise_model,
+        if_rank_with_dist=False,
+        rank_method=rating_trueskill,
+        percentage_of_top_samples=percentage_of_top_samples,
+    )
+
+    metrics_pa_v2, metrics_est_pa_v2 = results_of_pairwise_combinations(
+        pairwise_model=pairwise_model,
+        if_rank_with_dist=True,
+        rank_method=rating_sbbr,
+        percentage_of_top_samples=percentage_of_top_samples,
+    )
+
+    # standard approach
+    _, y_sa_pred = build_ml_model(
+        model=ML_reg,
+        train_data=pairwise_data.train_ary,
+        test_data=pairwise_data.test_ary
+    )
+
+    metrics_sa = ExtrapolationEvaluation(
+        percentage_of_top_samples=percentage_of_top_samples,
+        y_train_with_true_test=pairwise_model.pairwise_data_info.y_true_all,
+        y_train_with_predicted_test=y_sa_pred,
+        pairwise_data_info=pairwise_model.pairwise_data_info,
+    ).run_extrapolation_evaluation()
+    metrics_est_sa = metrics_evaluation(
+        pairwise_model.pairwise_data_info.test_ary[:, 0],
+        y_sa_pred
+    )
+
+    metrics_per_fold = (
+        [metrics_sa] + metrics_pa_v1 + metrics_pa_v2 +
+        [metrics_est_sa] + [metrics_est_pa_v2]
+    )
+    return metrics_per_fold
+
+
+def run(train_test_splits_dict: dict, ML_cls, ML_reg, percentage_of_top_samples=0.1, n_jobs=None):
     metrics_per_dataset = []
-    for fold_id, foldwise_data in train_test_splits_dict.items():
-        train_set = foldwise_data['train_set']
-        test_set = foldwise_data['test_set']
+    if n_jobs is None:
+        for fold_id, foldwise_data in train_test_splits_dict.items():
+            metrics_per_fold = run_per_dataset(
+                foldwise_data=foldwise_data,
+                ML_cls=ML_cls,
+                ML_reg=ML_reg,
+                percentage_of_top_samples=percentage_of_top_samples
+            )
+            metrics_per_dataset.append(metrics_per_fold)
+        return metrics_per_dataset
 
-        # pairwise approach
-        pairwise_data = PairwiseDataInfo(train_set, test_set)
-        pairwise_model = PairwiseModel(
-            pairwise_data_info=pairwise_data,
-            ML_cls=ML_cls,
-            ML_reg=ML_reg,
-        ).fit()
-
-        metrics_pa_v1, metrics_est_pa_v1 = results_of_pairwise_combinations(
-            pairwise_model=pairwise_model,
-            if_rank_with_dist=False,
-            rank_method=rating_trueskill,
-            percentage_of_top_samples=percentage_of_top_samples,
-        )
-
-        metrics_pa_v2, metrics_est_pa_v2 = results_of_pairwise_combinations(
-            pairwise_model=pairwise_model,
-            if_rank_with_dist=True,
-            rank_method=rating_sbbr,
-            percentage_of_top_samples=percentage_of_top_samples,
-        )
-
-        # standard approach
-        _, y_sa_pred = build_ml_model(
-            model=ML_reg,
-            train_data=pairwise_data.train_ary,
-            test_data=pairwise_data.test_ary
-        )
-
-        metrics_sa = ExtrapolationEvaluation(
-            percentage_of_top_samples=percentage_of_top_samples,
-            y_train_with_true_test=pairwise_model.pairwise_data_info.y_true_all,
-            y_train_with_predicted_test=y_sa_pred,
-            pairwise_data_info=pairwise_model.pairwise_data_info,
-        ).run_extrapolation_evaluation()
-        metrics_est_sa = metrics_evaluation(
-            pairwise_model.pairwise_data_info.test_ary[:, 0],
-            y_sa_pred
-        )
-
-        metrics_per_dataset.append(
-            [metrics_sa] + metrics_pa_v1 + metrics_pa_v2 +
-            [metrics_est_sa] + [metrics_est_pa_v2]
-        )
-    return metrics_per_dataset

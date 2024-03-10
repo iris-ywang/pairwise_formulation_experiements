@@ -4,6 +4,7 @@ from pairwise_formulation.pairwise_data import PairwiseDataInfo
 from pairwise_formulation.pairwise_model import PairwiseModel, build_ml_model
 from pairwise_formulation.pa_basics.rating import rating_trueskill, rating_sbbr
 from pairwise_formulation.evaluations.extrapolation_evaluation import ExtrapolationEvaluation
+from pairwise_formulation.evaluations.stock_return_evaluation import calculate_returns
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
@@ -123,12 +124,21 @@ def results_of_pairwise_combinations(
     return [metrics_c2, metrics_c2_c3, metrics_c1_c2_c3], metrics_est
 
 
-def run_per_dataset(foldwise_data: dict, ML_cls, ML_reg, percentage_of_top_samples=0.1):
+def run_per_dataset(
+        foldwise_data: dict,
+        ML_cls,
+        ML_reg,
+        percentage_of_top_samples=0.1,
+        target_value_col_name='y'
+):
+
     train_set = foldwise_data['train_set']
     test_set = foldwise_data['test_set']
 
     # pairwise approach
-    pairwise_data = PairwiseDataInfo(train_set, test_set)
+    pairwise_data = PairwiseDataInfo(
+        train_set, test_set, target_value_col_name=target_value_col_name
+    )
     pairwise_model = PairwiseModel(
         pairwise_data_info=pairwise_data,
         ML_cls=ML_cls,
@@ -174,7 +184,10 @@ def run_per_dataset(foldwise_data: dict, ML_cls, ML_reg, percentage_of_top_sampl
     return metrics_per_fold
 
 
-def run(train_test_splits_dict: dict, ML_cls, ML_reg, percentage_of_top_samples=0.1, n_jobs=None):
+def run(
+    train_test_splits_dict: dict, ML_cls, ML_reg,
+    percentage_of_top_samples=0.1, target_value_col_name='y', n_jobs=None
+):
     metrics_per_dataset = []
     if n_jobs is None:
         for fold_id, foldwise_data in train_test_splits_dict.items():
@@ -182,8 +195,88 @@ def run(train_test_splits_dict: dict, ML_cls, ML_reg, percentage_of_top_samples=
                 foldwise_data=foldwise_data,
                 ML_cls=ML_cls,
                 ML_reg=ML_reg,
-                percentage_of_top_samples=percentage_of_top_samples
+                percentage_of_top_samples=percentage_of_top_samples,
+                target_value_col_name=target_value_col_name,
             )
             metrics_per_dataset.append(metrics_per_fold)
         return metrics_per_dataset
 
+
+def run_per_stock_dataset(
+        foldwise_data: dict,
+        ML_cls,
+        ML_reg,
+        n_portofolio,
+        target_value_col_name="annual_pc_price_change",
+):
+
+    train_set = foldwise_data['train_set']
+    test_set = foldwise_data['test_set']
+
+    pred_true_return_list = []
+
+    # pairwise approach
+    pairwise_data = PairwiseDataInfo(
+        train_set, test_set, target_value_col_name=target_value_col_name
+    )
+    pairwise_model = PairwiseModel(
+        pairwise_data_info=pairwise_data,
+        ML_cls=ML_cls,
+        ML_reg=ML_reg,
+    ).fit()
+
+    # standard approach
+    _, y_sa_pred = build_ml_model(
+        model=ML_reg,
+        train_data=pairwise_data.train_ary,
+        test_data=pairwise_data.test_ary
+    )
+
+    pred_return_sa, true_return = calculate_returns(
+        y_test_pred=y_sa_pred[pairwise_model.pairwise_data_info.test_ids],
+        y_test_true=pairwise_model.pairwise_data_info.test_ary[:,0],
+        n_portofolio=n_portofolio,
+    )
+    pred_true_return_list.append(true_return)
+    pred_true_return_list.append(pred_return_sa)
+
+    y_ranking_c2 = pairwise_model.predict(
+        ranking_method=rating_trueskill,
+        ranking_input_type="c2",
+        if_sbbr_dist=False,
+    )
+
+    pred_return_c2, _ = calculate_returns(
+        y_test_pred=y_ranking_c2[pairwise_model.pairwise_data_info.test_ids],
+        y_test_true=pairwise_model.pairwise_data_info.test_ary[:,0],
+        n_portofolio=n_portofolio,
+    )
+    pred_true_return_list.append(pred_return_c2)
+
+    y_ranking_c2_c3 = pairwise_model.predict(
+        ranking_method=rating_trueskill,
+        ranking_input_type="c2_c3",
+        if_sbbr_dist=False,
+    )
+
+    pred_return_c2_c3, _ = calculate_returns(
+        y_test_pred=y_ranking_c2_c3[pairwise_model.pairwise_data_info.test_ids],
+        y_test_true=pairwise_model.pairwise_data_info.test_ary[:,0],
+        n_portofolio=n_portofolio,
+    )
+    pred_true_return_list.append(pred_return_c2_c3)
+
+    y_ranking_c1_c2_c3 = pairwise_model.predict(
+        ranking_method=rating_trueskill,
+        ranking_input_type="c1_c2_c3",
+        if_sbbr_dist=False,
+    )
+
+    pred_return_c1_c2_c3, _ = calculate_returns(
+        y_test_pred=y_ranking_c1_c2_c3[pairwise_model.pairwise_data_info.test_ids],
+        y_test_true=pairwise_model.pairwise_data_info.test_ary[:,0],
+        n_portofolio=n_portofolio,
+    )
+    pred_true_return_list.append(pred_return_c1_c2_c3)
+
+    return pred_true_return_list

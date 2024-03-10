@@ -8,7 +8,7 @@ import openml
 
 from pairwise_formulation.pa_basics.import_data import \
     filter_data, kfold_splits, transform_categorical_columns, get_repetition_rate
-from utils import run
+from run_utils import run
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 warnings.filterwarnings("ignore")

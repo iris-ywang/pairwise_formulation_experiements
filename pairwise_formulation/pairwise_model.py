@@ -106,7 +106,7 @@ class PairwiseModel():
         y_ranking_score_test = y_ranking_score_all[self.pairwise_data_info.test_ids]
 
         setattr(self, f"y_rank_via_{ranking_input_type}", y_ranking_score_test)
-        return y_ranking_score_test
+        return y_ranking_score_all
 
     def _fit_sign(self, test_pair_ids):
         number_test_batches = len(test_pair_ids) // self.batch_size

@@ -5,10 +5,13 @@ from pairwise_formulation.pairwise_data import PairwiseDataInfo
 
 
 class ExtrapolationEvaluation:
-    def __init__(self, y_train_with_true_test, y_train_with_predicted_test,
+    def __init__(self, y_train_with_predicted_test,
                  pairwise_data_info: PairwiseDataInfo, percentage_of_top_samples=0.1):
         self.y_pred_all = y_train_with_predicted_test
-        self.y_true_all = y_train_with_true_test
+        self.y_true_all = np.zeros(pairwise_data_info.train_test.shape[0])
+        self.y_true_all[pairwise_data_info.test_ids] = pairwise_data_info.test_ary[:, 0]
+        self.y_true_all[pairwise_data_info.train_ids] = pairwise_data_info.train_ary[:, 0]
+
         self.pairwise_data_info = pairwise_data_info
         self.test_ids = pairwise_data_info.test_ids
         self.train_ids = pairwise_data_info.train_ids

@@ -75,7 +75,6 @@ def results_of_pairwise_combinations(
 
     metrics_c2 = ExtrapolationEvaluation(
         percentage_of_top_samples=percentage_of_top_samples,
-        y_train_with_true_test=pairwise_model.pairwise_data_info.y_true_all,
         y_train_with_predicted_test=y_ranking_c2,
         pairwise_data_info=pairwise_model.pairwise_data_info,
     ).run_extrapolation_evaluation()
@@ -88,7 +87,6 @@ def results_of_pairwise_combinations(
 
     metrics_c2_c3 = ExtrapolationEvaluation(
         percentage_of_top_samples=percentage_of_top_samples,
-        y_train_with_true_test=pairwise_model.pairwise_data_info.y_true_all,
         y_train_with_predicted_test=y_ranking_c2_c3,
         pairwise_data_info=pairwise_model.pairwise_data_info,
     ).run_extrapolation_evaluation()
@@ -101,7 +99,6 @@ def results_of_pairwise_combinations(
 
     metrics_c1_c2_c3 = ExtrapolationEvaluation(
         percentage_of_top_samples=percentage_of_top_samples,
-        y_train_with_true_test=pairwise_model.pairwise_data_info.y_true_all,
         y_train_with_predicted_test=y_ranking_c1_c2_c3,
         pairwise_data_info=pairwise_model.pairwise_data_info,
     ).run_extrapolation_evaluation()
@@ -168,7 +165,6 @@ def run_per_dataset(
 
     metrics_sa = ExtrapolationEvaluation(
         percentage_of_top_samples=percentage_of_top_samples,
-        y_train_with_true_test=pairwise_model.pairwise_data_info.y_true_all,
         y_train_with_predicted_test=y_sa_pred,
         pairwise_data_info=pairwise_model.pairwise_data_info,
     ).run_extrapolation_evaluation()

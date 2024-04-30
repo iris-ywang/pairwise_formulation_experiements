@@ -6,7 +6,7 @@ import os
 import warnings
 
 from pairwise_formulation.pa_basics.import_data import dataset, kfold_splits
-from run_utils import run
+from run_experiments.run_utils import run
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 warnings.filterwarnings("ignore")
@@ -14,10 +14,10 @@ warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     chembl_info = pd.read_csv(
-        "../data/boolean_chembl_datasets_info.csv"
+        "./data/boolean_chembl_datasets_info.csv"
     ).sort_values(by=["N(sample)"])
 
-    output_dir = "../output/boolean_chembl/"
+    output_dir = "./output/boolean_chembl/"
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)

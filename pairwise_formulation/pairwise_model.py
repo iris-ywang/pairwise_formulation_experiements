@@ -3,7 +3,7 @@ from itertools import chain
 
 from .pairwise_data import PairwiseDataInfo, PairwiseValues
 from .pa_basics.all_pairs import pair_by_pair_id_per_feature
-from .pa_basics.rating import rating_trueskill, rating_sbbr
+from .pa_basics.rating import rating_elo
 
 class PairwiseModel():
 
@@ -58,7 +58,7 @@ class PairwiseModel():
         self.Y_values.Y_pa_c1_sign = list(train_pairs_for_sign[:, 0])
         return self
 
-    def predict(self, ranking_method=rating_trueskill, ranking_input_type='c2', if_sbbr_dist=False):
+    def predict(self, ranking_method=rating_elo, ranking_input_type='c2', if_sbbr_dist=False):
         if self.Y_values.Y_pa_c2_sign is None:
             self.Y_values.Y_pa_c2_sign_true, self.Y_values.Y_pa_c2_sign = \
                 self._fit_sign(self.pairwise_data_info.c2_test_pair_ids)

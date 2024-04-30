@@ -14,6 +14,36 @@ from ScoreBasedTrueSkill.score_based_bayesian_rating import ScoreBasedBayesianRa
 from ScoreBasedTrueSkill.rating import Rating as SDRating
 
 
+def rating_elo(Y, test_pair_ids, y_true):
+    n_samples = len(y_true)
+    n_comparisons = len(Y)
+    ranking = [Rating() for _ in range(n_samples)]
+
+    # Elo's paramemters:
+    alpha = 1 / 400
+    beta = 32
+    gamma = 10
+    R0 = 1500
+
+    ranking = [R0 for _ in range(n_samples)]
+
+    for pair_id in range(n_comparisons):
+        id_a, id_b = test_pair_ids[pair_id]
+        compare_result = np.sign(Y[pair_id])
+
+        Ra = float(ranking[id_a])
+        Rb = float(ranking[id_b])
+
+        E_a = 1 / (1 + gamma ** (alpha * (Rb - Ra)))
+        ranking[id_a] += beta * (compare_result - E_a)
+
+        E_b = 1 / (1 + gamma ** (alpha * (Ra - Rb)))
+        ranking[id_b] += beta * ((1 - compare_result) - E_b)
+
+    ranking = np.array(ranking)
+
+    return ranking
+
 
 def rating_trueskill(Y, test_pair_ids, y_true):
     n_samples = len(y_true)
@@ -53,13 +83,3 @@ def rating_sbbr(Y, test_pair_ids, y_true):
     return np.array([i[0].mean for i in ranking])
 
 
-def evaluation(dy, combs_lst, train_ids, test_ids, y_true, func = rating_trueskill, params = None):
-    y0 = func(dy, combs_lst, y_true, train_ids)
-    # print(y_true[test_ids], y0[test_ids])
-    rho = spearmanr(y_true[test_ids], y0[test_ids], nan_policy = "omit")[0]
-    ndcg = ndcg_score([y_true[test_ids]], [y0[test_ids]])
-    mse = mean_squared_error(y_true[test_ids], y0[test_ids])
-    tau = kendalltau(y_true[test_ids], y0[test_ids])[0]
-    # print(rho, ndcg, tau, mse)
-
-    return y0, (rho, ndcg, tau, mse)

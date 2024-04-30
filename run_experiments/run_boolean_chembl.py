@@ -19,6 +19,9 @@ if __name__ == '__main__':
 
     output_dir = "../output/boolean_chembl/"
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     try:
         existing_results = np.load(output_dir + "boolean_chembl_rf_run1.npy")
         existing_count = len(existing_results)
@@ -53,4 +56,4 @@ if __name__ == '__main__':
             percentage_of_top_samples=0.1,  # top-performing as in top 10%
         )
         all_metrics.append(metrics_per_dataset)
-        np.save(output_dir + "boolean_chembl_rf_run1.npy", np.array(all_metrics))
+        np.save(output_dir + "boolean_chembl_rf_elo1.npy", np.array(all_metrics))

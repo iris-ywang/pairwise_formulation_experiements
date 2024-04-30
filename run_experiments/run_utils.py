@@ -163,9 +163,12 @@ def run_per_dataset(
         test_data=pairwise_data.test_ary
     )
 
+    y_sa_pred_w_train = np.array(pairwise_data.y_true_all)
+    y_sa_pred_w_train[pairwise_data.test_ids] = y_sa_pred
+
     metrics_sa = ExtrapolationEvaluation(
         percentage_of_top_samples=percentage_of_top_samples,
-        y_train_with_predicted_test=y_sa_pred,
+        y_train_with_predicted_test=y_sa_pred_w_train,
         pairwise_data_info=pairwise_model.pairwise_data_info,
     ).run_extrapolation_evaluation()
     metrics_est_sa = metrics_evaluation(

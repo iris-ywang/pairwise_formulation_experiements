@@ -13,11 +13,12 @@ warnings.filterwarnings("ignore")
 
 
 if __name__ == '__main__':
+    root_dir = os.getcwd()
     chembl_info = pd.read_csv(
-        "./data/boolean_chembl_datasets_info.csv"
+        root_dir + "/data/boolean_chembl_datasets_info.csv"
     ).sort_values(by=["N(sample)"])
 
-    output_dir = "./output/boolean_chembl/"
+    output_dir = root_dir + "/output/boolean_chembl/"
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -39,7 +40,7 @@ if __name__ == '__main__':
 
         filename = chembl_info.iloc[file]["File name"]
         logging.info(f"On Dataset No. {count}, filename: {filename}")
-        data_folder = os.getcwd() + "/../data/qsar_data_unsorted/"
+        data_folder = os.getcwd() + "/data/qsar_data_unsorted/"
         train_test = dataset(data_folder + filename, shuffle_state=1)
 
         if len(np.unique(train_test[:, 0])) == 1:
